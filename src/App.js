@@ -27,7 +27,7 @@ function App() {
     ["2DIR","1BIE"],
     ["DCS","3DIR"],
     ["BCAS","3ESC"],
-    ["1BIE","2ESC"], // 6e match
+    ["1BIE","2ESC"], 
     ["2DIR","2ESC"],
     ["1BIE","DCS"],
     ["BCAS","2DIR"],
@@ -65,12 +65,6 @@ function App() {
   const handleChange = (i, field, value) => {
     const copy = [...matches];
     copy[i][field] = value;
-    setMatches(copy);
-  };
-
-  const handleCardChange = (i, field, value) => {
-    const copy = [...matches];
-    copy[i][field] = Array(Number(value)).fill("x");
     setMatches(copy);
   };
 
