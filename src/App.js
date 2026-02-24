@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
 
@@ -62,7 +63,11 @@ function App() {
   const [matches, setMatches] = useState(generateMatches());
 
   // ================= MODIFICATIONS =================
-  ;
+  const handleChange = (i, field, value) => {
+    const copy = [...matches];
+    copy[i][field] = value;
+    setMatches(copy);
+  };
 
   const handleCJCRInput = (i, type, value) => {
     const copy = [...matches];
@@ -369,6 +374,7 @@ function App() {
         )}
       </div>
 
+      <Analytics />
     </div>
   );
 }
