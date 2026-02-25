@@ -5,12 +5,14 @@ function App() {
   // ================= ADMIN =================
   const [adminPassword, setAdminPassword] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [regles, setRegles] = useState(
+  const [regles, setRegles] = useState(() => {
+    const saved = localStorage.getItem("tournoi_regles");
+    return saved ? saved :
 `1. Victoire = 3 points
 2. Match nul = 1 point
 3. Défaite = 0 point
-4. En cas d'égalité : Différence > Buts marqués > Moins de cartons rouges > Moins de cartons jaunes`
-  );
+4. En cas d'égalité : Différence > Buts marqués > Moins de cartons rouges > Moins de cartons jaunes`;
+  });
 
   const handleLogin = () => {
     if (adminPassword === "admin123") setIsAdmin(true);
@@ -27,7 +29,7 @@ function App() {
     ["2DIR","1BIE"],
     ["DCS","3DIR"],
     ["BCAS","3ESC"],
-    ["1BIE","2ESC"], 
+    ["1BIE","2ESC"],
     ["2DIR","2ESC"],
     ["1BIE","DCS"],
     ["BCAS","2DIR"],
@@ -59,13 +61,30 @@ function App() {
     terrain:""
   })));
 
-  const [matches, setMatches] = useState(generateMatches());
+  const [matches, setMatches] = useState(() => {
+    const saved = localStorage.getItem("tournoi_matches");
+    return saved ? JSON.parse(saved) : generateMatches();
+  });
+
+  // ================= SAUVEGARDE =================
+  const saveMatches = (copy) => {
+    setMatches(copy);
+    localStorage.setItem("tournoi_matches", JSON.stringify(copy));
+  };
+
+  const handleResetData = () => {
+    if (window.confirm("Voulez-vous vraiment réinitialiser toutes les données ?")) {
+      localStorage.removeItem("tournoi_matches");
+      localStorage.removeItem("tournoi_regles");
+      setMatches(generateMatches());
+    }
+  };
 
   // ================= MODIFICATIONS =================
   const handleChange = (i, field, value) => {
     const copy = [...matches];
     copy[i][field] = value;
-    setMatches(copy);
+    saveMatches(copy);
   };
 
   const handleCJCRInput = (i, type, value) => {
@@ -74,20 +93,25 @@ function App() {
     if(parts.length === 2) {
       copy[i][type + "A"] = Array(Number(parts[0])).fill("x");
       copy[i][type + "B"] = Array(Number(parts[1])).fill("x");
-      setMatches(copy);
+      saveMatches(copy);
     }
   };
 
   const addPlayer = (i, field) => {
     const copy = [...matches];
     copy[i][field].push("");
-    setMatches(copy);
+    saveMatches(copy);
   };
 
   const updatePlayer = (i, field, index, value) => {
     const copy = [...matches];
     copy[i][field][index] = value;
-    setMatches(copy);
+    saveMatches(copy);
+  };
+
+  const handleReglesChange = (value) => {
+    setRegles(value);
+    localStorage.setItem("tournoi_regles", value);
   };
 
   // ================= CLASSEMENT =================
@@ -165,6 +189,15 @@ function App() {
           <button onClick={handleLogin}
             className="bg-blue-800 text-white px-4 py-2 rounded">
             Connexion
+          </button>
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="text-center mb-6">
+          <button onClick={handleResetData}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            🔄 Réinitialiser toutes les données
           </button>
         </div>
       )}
@@ -250,7 +283,7 @@ function App() {
                 </td>
 
                 <td>
-                  {isAdmin ? 
+                  {isAdmin ?
                     <input type="text"
                       value={m.arbitre || ""}
                       onChange={e=>handleChange(i,"arbitre",e.target.value)}
@@ -259,7 +292,7 @@ function App() {
                 </td>
 
                 <td>
-                  {isAdmin ? 
+                  {isAdmin ?
                     <input type="text"
                       value={m.terrain || ""}
                       onChange={e=>handleChange(i,"terrain",e.target.value)}
@@ -301,7 +334,7 @@ function App() {
                       value={`${m.jaunesA.length} / ${m.jaunesB.length}`}
                       onChange={e=>handleCJCRInput(i, "jaunes", e.target.value)}
                       className="border p-1 w-28 text-center"/>
-                    : `${m.equipeA} / ${m.jaunesA.length} \n ${m.equipeB} / ${m.jaunesB.length}`}
+                    : `${m.equipeA}: ${m.jaunesA.length} / ${m.equipeB}: ${m.jaunesB.length}`}
                 </td>
 
                 <td>
@@ -310,7 +343,7 @@ function App() {
                       value={`${m.rougesA.length} / ${m.rougesB.length}`}
                       onChange={e=>handleCJCRInput(i, "rouges", e.target.value)}
                       className="border p-1 w-28 text-center"/>
-                    : `${m.equipeA} / ${m.rougesA.length} \n ${m.equipeB} / ${m.rougesB.length}`}
+                    : `${m.equipeA}: ${m.rougesA.length} / ${m.equipeB}: ${m.rougesB.length}`}
                 </td>
 
               </tr>
@@ -365,7 +398,7 @@ function App() {
         {isAdmin ? (
           <textarea
             value={regles}
-            onChange={e=>setRegles(e.target.value)}
+            onChange={e=>handleReglesChange(e.target.value)}
             className="w-full p-4 rounded text-black"
           />
         ) : (
