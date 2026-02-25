@@ -1,18 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// ================= JSONBIN CONFIG =================
+const BIN_ID = "699e472a43b1c97be99b0c93";
+const API_KEY = "$2a$10$7JcGfyoAVRMxz9UCi86y5e9ioAlu66JfcC431wUHlqXgjQnFTdqj6";
+const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+const fetchData = async () => {
+  const res = await fetch(BIN_URL + "/latest", {
+    headers: { "X-Master-Key": API_KEY }
+  });
+  const json = await res.json();
+  return json.record;
+};
+
+const saveData = async (data) => {
+  await fetch(BIN_URL, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Master-Key": API_KEY
+    },
+    body: JSON.stringify(data)
+  });
+};
 
 function App() {
 
   // ================= ADMIN =================
   const [adminPassword, setAdminPassword] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [regles, setRegles] = useState(() => {
-    const saved = localStorage.getItem("tournoi_regles");
-    return saved ? saved :
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const [regles, setRegles] = useState(
 `1. Victoire = 3 points
 2. Match nul = 1 point
 3. Défaite = 0 point
-4. En cas d'égalité : Différence > Buts marqués > Moins de cartons rouges > Moins de cartons jaunes`;
-  });
+4. En cas d'égalité : Différence > Buts marqués > Moins de cartons rouges > Moins de cartons jaunes`
+  );
 
   const handleLogin = () => {
     if (adminPassword === "admin123") setIsAdmin(true);
@@ -22,7 +47,7 @@ function App() {
   // ================= ÉQUIPES =================
   const teams = ["BCAS","3DIR","3ESC","2ESC","2DIR","1BIE","DCS"];
 
-  // ================= MATCHES (ORDRE OPTIMISÉ) =================
+  // ================= MATCHES =================
   const generateMatches = () => ([
     ["BCAS","3DIR"],
     ["3ESC","2ESC"],
@@ -61,30 +86,45 @@ function App() {
     terrain:""
   })));
 
-  const [matches, setMatches] = useState(() => {
-    const saved = localStorage.getItem("tournoi_matches");
-    return saved ? JSON.parse(saved) : generateMatches();
-  });
+  const [matches, setMatches] = useState(generateMatches());
 
-  // ================= SAUVEGARDE =================
-  const saveMatches = (copy) => {
-    setMatches(copy);
-    localStorage.setItem("tournoi_matches", JSON.stringify(copy));
-  };
+  // ================= CHARGEMENT DEPUIS JSONBIN =================
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await fetchData();
+        if (data.matches && data.matches.length > 0) {
+          setMatches(data.matches);
+        }
+        if (data.regles) {
+          setRegles(data.regles);
+        }
+      } catch (e) {
+        console.error("Erreur chargement:", e);
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
 
-  const handleResetData = () => {
-    if (window.confirm("Voulez-vous vraiment réinitialiser toutes les données ?")) {
-      localStorage.removeItem("tournoi_matches");
-      localStorage.removeItem("tournoi_regles");
-      setMatches(generateMatches());
+  // ================= SAUVEGARDE VERS JSONBIN =================
+  const save = async (newMatches, newRegles) => {
+    setSaving(true);
+    try {
+      await saveData({ matches: newMatches, regles: newRegles });
+    } catch (e) {
+      console.error("Erreur sauvegarde:", e);
+      alert("Erreur de sauvegarde !");
     }
+    setSaving(false);
   };
 
   // ================= MODIFICATIONS =================
   const handleChange = (i, field, value) => {
     const copy = [...matches];
     copy[i][field] = value;
-    saveMatches(copy);
+    setMatches(copy);
+    save(copy, regles);
   };
 
   const handleCJCRInput = (i, type, value) => {
@@ -93,35 +133,51 @@ function App() {
     if(parts.length === 2) {
       copy[i][type + "A"] = Array(Number(parts[0])).fill("x");
       copy[i][type + "B"] = Array(Number(parts[1])).fill("x");
-      saveMatches(copy);
+      setMatches(copy);
+      save(copy, regles);
     }
   };
 
   const addPlayer = (i, field) => {
     const copy = [...matches];
     copy[i][field].push("");
-    saveMatches(copy);
+    setMatches(copy);
+    save(copy, regles);
   };
 
   const updatePlayer = (i, field, index, value) => {
     const copy = [...matches];
     copy[i][field][index] = value;
-    saveMatches(copy);
+    setMatches(copy);
+    save(copy, regles);
   };
 
   const handleReglesChange = (value) => {
     setRegles(value);
-    localStorage.setItem("tournoi_regles", value);
+    save(matches, value);
+  };
+
+  // ================= RESET =================
+  const handleReset = async () => {
+    if (window.confirm("Réinitialiser toutes les données ?")) {
+      const fresh = generateMatches();
+      const defaultRegles =
+`1. Victoire = 3 points
+2. Match nul = 1 point
+3. Défaite = 0 point
+4. En cas d'égalité : Différence > Buts marqués > Moins de cartons rouges > Moins de cartons jaunes`;
+      setMatches(fresh);
+      setRegles(defaultRegles);
+      await save(fresh, defaultRegles);
+    }
   };
 
   // ================= CLASSEMENT =================
   const classement = teams.map(team=>{
     let points=0, bm=0, be=0, cj=0, cr=0, mj=0;
-
     matches.forEach(m=>{
       const a=parseInt(m.scoreA)||0;
       const b=parseInt(m.scoreB)||0;
-
       if(m.equipeA===team){
         if(m.scoreA!=="" && m.scoreB!=="") mj++;
         if(a>b) points+=3;
@@ -139,7 +195,6 @@ function App() {
         cr+=m.rougesB.length;
       }
     });
-
     return {team,mj,points,bm,be,diff:bm-be,cj,cr};
   }).sort((a,b)=>
     b.points - a.points ||
@@ -156,7 +211,6 @@ function App() {
       if(name) goalStats[name]=(goalStats[name]||0)+1;
     });
   });
-
   const topScorers = Object.entries(goalStats)
     .map(([name, goals])=>({name, goals}))
     .sort((a,b)=>b.goals-a.goals);
@@ -168,18 +222,35 @@ function App() {
       if(name) assistStats[name]=(assistStats[name]||0)+1;
     });
   });
-
   const topAssists = Object.entries(assistStats)
     .map(([name, assists])=>({name, assists}))
     .sort((a,b)=>b.assists-a.assists);
 
+  // ================= LOADING =================
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="text-center">
+        <div className="text-4xl mb-4">⚽</div>
+        <p className="text-blue-900 text-xl font-bold">Chargement du tournoi...</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="p-4 md:p-8 bg-gray-100 min-h-screen">
 
-      <h1 className="text-3xl font-bold text-center mb-8 text-blue-900">
+      <h1 className="text-3xl font-bold text-center mb-2 text-blue-900">
         TOURNOI OFFICIEL – 7 ÉQUIPES
       </h1>
 
+      {/* INDICATEUR SAUVEGARDE */}
+      {saving && (
+        <p className="text-center text-green-600 font-semibold mb-4 animate-pulse">
+          💾 Sauvegarde en cours...
+        </p>
+      )}
+
+      {/* LOGIN ADMIN */}
       {!isAdmin && (
         <div className="text-center mb-8">
           <input type="password"
@@ -193,38 +264,31 @@ function App() {
         </div>
       )}
 
+      {/* BOUTON RESET */}
       {isAdmin && (
         <div className="text-center mb-6">
-          <button onClick={handleResetData}
+          <button onClick={handleReset}
             className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-            🔄 Réinitialiser toutes les données
+            🗑️ Réinitialiser toutes les données
           </button>
         </div>
       )}
 
       {/* CLASSEMENT DES ÉQUIPES */}
       <div className="mb-12 shadow-xl overflow-x-auto">
-        <h2 className="text-2xl font-bold mb-4 text-blue-900">
-          Classement des équipes
-        </h2>
+        <h2 className="text-2xl font-bold mb-4 text-blue-900">Classement des équipes</h2>
         <table className="min-w-full bg-white rounded">
           <thead className="bg-gradient-to-r from-blue-900 to-blue-600 text-white">
             <tr className="text-center">
               <th>#</th><th>Équipe</th><th>MJ</th><th>Pts</th>
-              <th>BM</th><th>BE</th><th>Diff</th>
-              <th>CR</th><th>CJ</th>
+              <th>BM</th><th>BE</th><th>Diff</th><th>CR</th><th>CJ</th>
             </tr>
           </thead>
           <tbody>
             {classement.map((c,i)=>(
               <tr key={i} className={`text-center border-b ${i===0 ? "bg-yellow-100 font-bold" : ""}`}>
-                <td>{i+1}</td>
-                <td>{c.team}</td>
-                <td>{c.mj}</td>
-                <td>{c.points}</td>
-                <td>{c.bm}</td>
-                <td>{c.be}</td>
-                <td>{c.diff}</td>
+                <td>{i+1}</td><td>{c.team}</td><td>{c.mj}</td>
+                <td>{c.points}</td><td>{c.bm}</td><td>{c.be}</td><td>{c.diff}</td>
                 <td className="text-red-600 font-bold">{c.cr}</td>
                 <td className="text-yellow-600 font-bold">{c.cj}</td>
               </tr>
@@ -235,75 +299,56 @@ function App() {
 
       {/* DÉTAILS DES MATCHES */}
       <div className="overflow-x-auto mb-12 shadow-xl">
-        <h2 className="text-xl font-bold mb-4 text-blue-800">
-          Les détails des matches (21)
-        </h2>
+        <h2 className="text-xl font-bold mb-4 text-blue-800">Les détails des matches (21)</h2>
         <table className="min-w-full bg-white">
           <thead className="bg-blue-900 text-white">
             <tr>
-              <th>Date</th>
-              <th>Match</th>
-              <th>Arbitre</th>
-              <th>Terrain</th>
-              <th>Buteurs</th>
-              <th>Passes</th>
-              <th>CJ</th>
-              <th>CR</th>
+              <th>Date</th><th>Match</th><th>Arbitre</th><th>Terrain</th>
+              <th>Buteurs</th><th>Passes</th><th>CJ</th><th>CR</th>
             </tr>
           </thead>
           <tbody>
             {matches.map((m,i)=>(
               <tr key={i} className="text-center border-b">
-
                 <td>
                   {isAdmin ?
-                    <input type="date"
-                      value={m.date}
+                    <input type="date" value={m.date}
                       onChange={e=>handleChange(i,"date",e.target.value)}
                       className="border p-1"/>
                     : m.date}
                 </td>
-
                 <td className="font-semibold">
                   {m.equipeA}
                   {isAdmin ? (
                     <>
-                      <input type="number"
-                        value={m.scoreA}
+                      <input type="number" value={m.scoreA}
                         onChange={e=>handleChange(i,"scoreA",e.target.value)}
                         className="w-12 mx-1 border text-center"/>
                       -
-                      <input type="number"
-                        value={m.scoreB}
+                      <input type="number" value={m.scoreB}
                         onChange={e=>handleChange(i,"scoreB",e.target.value)}
                         className="w-12 mx-1 border text-center"/>
                     </>
                   ) : ` ${m.scoreA}-${m.scoreB} `}
                   {m.equipeB}
                 </td>
-
                 <td>
                   {isAdmin ?
-                    <input type="text"
-                      value={m.arbitre || ""}
+                    <input type="text" value={m.arbitre || ""}
                       onChange={e=>handleChange(i,"arbitre",e.target.value)}
                       className="border p-1 w-32"/>
                     : m.arbitre}
                 </td>
-
                 <td>
                   {isAdmin ?
-                    <input type="text"
-                      value={m.terrain || ""}
+                    <input type="text" value={m.terrain || ""}
                       onChange={e=>handleChange(i,"terrain",e.target.value)}
                       className="border p-1 w-32"/>
                     : m.terrain}
                 </td>
-
                 <td>
                   {m.buteurs.map((p,index)=>(
-                    <input key={index}
-                      value={p}
+                    <input key={index} value={p}
                       onChange={e=>updatePlayer(i,"buteurs",index,e.target.value)}
                       className="border p-1 m-1 w-24"/>
                   ))}
@@ -313,11 +358,9 @@ function App() {
                       + Joueur
                     </button>}
                 </td>
-
                 <td>
                   {m.passes.map((p,index)=>(
-                    <input key={index}
-                      value={p}
+                    <input key={index} value={p}
                       onChange={e=>updatePlayer(i,"passes",index,e.target.value)}
                       className="border p-1 m-1 w-24"/>
                   ))}
@@ -327,25 +370,22 @@ function App() {
                       + Joueur
                     </button>}
                 </td>
-
                 <td>
                   {isAdmin ?
                     <input type="text"
                       value={`${m.jaunesA.length} / ${m.jaunesB.length}`}
-                      onChange={e=>handleCJCRInput(i, "jaunes", e.target.value)}
+                      onChange={e=>handleCJCRInput(i,"jaunes",e.target.value)}
                       className="border p-1 w-28 text-center"/>
-                    : `${m.equipeA}: ${m.jaunesA.length} / ${m.equipeB}: ${m.jaunesB.length}`}
+                    : `${m.equipeA} / ${m.jaunesA.length} \n ${m.equipeB} / ${m.jaunesB.length}`}
                 </td>
-
                 <td>
                   {isAdmin ?
                     <input type="text"
                       value={`${m.rougesA.length} / ${m.rougesB.length}`}
-                      onChange={e=>handleCJCRInput(i, "rouges", e.target.value)}
+                      onChange={e=>handleCJCRInput(i,"rouges",e.target.value)}
                       className="border p-1 w-28 text-center"/>
-                    : `${m.equipeA}: ${m.rougesA.length} / ${m.equipeB}: ${m.rougesB.length}`}
+                    : `${m.equipeA} / ${m.rougesA.length} \n ${m.equipeB} / ${m.rougesB.length}`}
                 </td>
-
               </tr>
             ))}
           </tbody>
@@ -354,9 +394,7 @@ function App() {
 
       {/* CLASSEMENT BUTEURS */}
       <div className="mb-12 shadow-lg">
-        <h2 className="text-xl font-bold mb-3 text-blue-800">
-          Classement des Buteurs
-        </h2>
+        <h2 className="text-xl font-bold mb-3 text-blue-800">Classement des Buteurs</h2>
         <table className="w-full bg-white">
           <thead className="bg-blue-900 text-white">
             <tr><th>#</th><th>Joueur</th><th>Buts</th></tr>
@@ -373,9 +411,7 @@ function App() {
 
       {/* CLASSEMENT PASSES */}
       <div className="mb-12 shadow-lg">
-        <h2 className="text-xl font-bold mb-3 text-blue-800">
-          Classement des Passes Décisives
-        </h2>
+        <h2 className="text-xl font-bold mb-3 text-blue-800">Classement des Passes Décisives</h2>
         <table className="w-full bg-white">
           <thead className="bg-blue-900 text-white">
             <tr><th>#</th><th>Joueur</th><th>Passes</th></tr>
@@ -392,15 +428,12 @@ function App() {
 
       {/* REGLES */}
       <div className="mt-16 p-8 rounded-xl shadow-2xl bg-gradient-to-r from-blue-900 to-blue-600 text-white">
-        <h2 className="text-2xl font-bold mb-4">
-          Règlement Officiel du Tournoi
-        </h2>
+        <h2 className="text-2xl font-bold mb-4">Règlement Officiel du Tournoi</h2>
         {isAdmin ? (
           <textarea
             value={regles}
             onChange={e=>handleReglesChange(e.target.value)}
-            className="w-full p-4 rounded text-black"
-          />
+            className="w-full p-4 rounded text-black"/>
         ) : (
           <p className="whitespace-pre-line text-lg">{regles}</p>
         )}
