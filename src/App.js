@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 // ================= JSONBIN CONFIG =================
 const BIN_ID = "699e472a43b1c97be99b0c93";
