@@ -353,8 +353,7 @@ function App() {
                   <th className="p-3">Équipe</th>
                   <th className="p-3">MJ</th>
                   <th className="p-3">Pts</th>
-                  <th className="p-3">BM</th>
-                  <th className="p-3">BE</th>
+                  <th className="p-3">B</th>
                   <th className="p-3">Diff</th>
                   <th className="p-3">CR</th>
                   <th className="p-3">CJ</th>
@@ -370,8 +369,7 @@ function App() {
                     <td className="p-3 font-bold text-blue-900">{c.team}</td>
                     <td className="p-3">{c.mj}</td>
                     <td className="p-3 font-extrabold text-blue-900 text-base">{c.points}</td>
-                    <td className="p-3">{c.bm}</td>
-                    <td className="p-3">{c.be}</td>
+                    <td className="p-3">{c.bm}/{c.be}</td>
                     <td className="p-3 font-semibold">{c.diff}</td>
                     <td className="p-3 text-red-600 font-bold">{c.cr}</td>
                     <td className="p-3 text-yellow-600 font-bold">{c.cj}</td>
