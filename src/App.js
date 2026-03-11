@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // ================= JSONBIN CONFIG =================
 const BIN_ID = "699e472a43b1c97be99b0c93";
@@ -62,6 +62,63 @@ const BackButton = ({ onBack }) => (
     <span className="text-base">←</span> Accueil
   </button>
 );
+
+// ================= FLOATING BACK BUTTON =================
+const FloatingBackButton = ({ onBack }) => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setVisible(window.scrollY > 120);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <button
+      onClick={onBack}
+      aria-label="Retour à l'accueil"
+      style={{
+        position: "fixed",
+        bottom: "24px",
+        right: "20px",
+        zIndex: 9999,
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0) scale(1)" : "translateY(16px) scale(0.85)",
+        pointerEvents: visible ? "auto" : "none",
+        transition: "opacity 0.25s ease, transform 0.25s ease",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        background: "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "999px",
+        padding: "12px 20px",
+        fontWeight: "800",
+        fontSize: "13px",
+        boxShadow: "0 4px 20px rgba(30,58,138,0.45), 0 1px 4px rgba(0,0,0,0.15)",
+        cursor: "pointer",
+        letterSpacing: "0.02em",
+        whiteSpace: "nowrap",
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = "linear-gradient(135deg, #172554 0%, #1e40af 100%)";
+        e.currentTarget.style.boxShadow = "0 6px 28px rgba(30,58,138,0.55), 0 2px 6px rgba(0,0,0,0.2)";
+        e.currentTarget.style.transform = "translateY(-2px) scale(1.04)";
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)";
+        e.currentTarget.style.boxShadow = "0 4px 20px rgba(30,58,138,0.45), 0 1px 4px rgba(0,0,0,0.15)";
+        e.currentTarget.style.transform = "translateY(0) scale(1)";
+      }}
+    >
+      <span style={{ fontSize: "16px", lineHeight: 1 }}>🏠</span>
+      Accueil
+    </button>
+  );
+};
 
 // ================= PAGE HEADER =================
 const PageHeader = ({ icon, title, subtitle }) => (
@@ -222,6 +279,11 @@ function App() {
     load();
   }, []);
 
+  // Reset scroll to top on page change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [page]);
+
   const save = async (m, r, fm, dt) => {
     setSaving(true);
     try { await saveData({ matches: m, regles: r, finaleMatches: fm, dfTeams: dt }); }
@@ -270,6 +332,18 @@ function App() {
   };
 
   // ---- Classement ----
+  // Fonction H2H : points de teamA contre teamB en confrontation directe
+  const getH2HPoints = (teamA, teamB) => {
+    let ptsA=0, ptsB=0;
+    matches.forEach(m => {
+      const a=parseInt(m.scoreA)||0, b=parseInt(m.scoreB)||0;
+      if(m.scoreA===""||m.scoreB==="") return;
+      if(m.equipeA===teamA && m.equipeB===teamB){ if(a>b) ptsA+=3; else if(a===b) { ptsA+=1; ptsB+=1; } else ptsB+=3; }
+      if(m.equipeA===teamB && m.equipeB===teamA){ if(a>b) ptsB+=3; else if(a===b) { ptsA+=1; ptsB+=1; } else ptsA+=3; }
+    });
+    return ptsA - ptsB;
+  };
+
   const classement = TEAMS.map(team => {
     let points=0,bm=0,be=0,cj=0,cr=0,mj=0;
     matches.forEach(m => {
@@ -278,7 +352,15 @@ function App() {
       if(m.equipeB===team){ if(m.scoreA!==""&&m.scoreB!=="") mj++; if(b>a) points+=3; else if(a===b&&m.scoreA!=="") points+=1; bm+=b;be+=a;cj+=m.jaunesB.length;cr+=m.rougesB.length; }
     });
     return {team,mj,points,bm,be,diff:bm-be,cj,cr};
-  }).sort((a,b)=>b.points-a.points||b.diff-a.diff||b.bm-a.bm||a.cr-b.cr||a.cj-b.cj);
+  }).sort((a,b) => {
+    if(b.points !== a.points) return b.points - a.points;
+    if(b.diff   !== a.diff)   return b.diff   - a.diff;
+    if(b.bm     !== a.bm)     return b.bm     - a.bm;
+    const h2h = getH2HPoints(a.team, b.team);
+    if(h2h !== 0) return -h2h;
+    if(a.cr !== b.cr) return a.cr - b.cr;
+    return a.cj - b.cj;
+  });
 
   // Équipes phase finale : uniquement ce que l'admin a saisi, sinon "?" masqué
   const team1 = dfTeams.df1A || "";
@@ -603,6 +685,9 @@ function App() {
         </div>
         )}
       </div>
+
+      {/* ✅ Bouton flottant retour accueil */}
+      <FloatingBackButton onBack={() => { setEditingOrder(false); setPage("home"); }} />
     </div>
   );
 
@@ -711,6 +796,9 @@ function App() {
           ) : null;
         })()}
       </div>
+
+      {/* ✅ Bouton flottant retour accueil */}
+      <FloatingBackButton onBack={() => setPage("home")} />
     </div>
   );
 
@@ -747,6 +835,9 @@ function App() {
           </table>
         </div>
       </div>
+
+      {/* ✅ Bouton flottant retour accueil */}
+      <FloatingBackButton onBack={() => setPage("home")} />
     </div>
   );
 
@@ -783,6 +874,9 @@ function App() {
           </table>
         </div>
       </div>
+
+      {/* ✅ Bouton flottant retour accueil */}
+      <FloatingBackButton onBack={() => setPage("home")} />
     </div>
   );
 }
