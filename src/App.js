@@ -66,18 +66,27 @@ const BackButton = ({ onBack }) => (
 // ================= FLOATING BACK BUTTON =================
 const FloatingBackButton = ({ onBack }) => {
   const [visible, setVisible] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
+    // Apparaît après un court délai dès l'entrée dans la page
+    const timer = setTimeout(() => setVisible(true), 300);
+    // Se cache quand l'utilisateur revient tout en haut
     const handleScroll = () => {
-      setVisible(window.scrollY > 120);
+      setVisible(window.scrollY <= 80 ? false : true);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   return (
     <button
       onClick={onBack}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       aria-label="Retour à l'accueil"
       style={{
         position: "fixed",
@@ -87,31 +96,25 @@ const FloatingBackButton = ({ onBack }) => {
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0) scale(1)" : "translateY(16px) scale(0.85)",
         pointerEvents: visible ? "auto" : "none",
-        transition: "opacity 0.25s ease, transform 0.25s ease",
+        transition: "opacity 0.3s ease, transform 0.3s ease, background 0.2s ease, box-shadow 0.2s ease",
         display: "flex",
         alignItems: "center",
         gap: "8px",
-        background: "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)",
+        background: hovered
+          ? "linear-gradient(135deg, #172554 0%, #1e40af 100%)"
+          : "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)",
         color: "#ffffff",
         border: "none",
         borderRadius: "999px",
         padding: "12px 20px",
         fontWeight: "800",
         fontSize: "13px",
-        boxShadow: "0 4px 20px rgba(30,58,138,0.45), 0 1px 4px rgba(0,0,0,0.15)",
+        boxShadow: hovered
+          ? "0 6px 28px rgba(30,58,138,0.55), 0 2px 6px rgba(0,0,0,0.2)"
+          : "0 4px 20px rgba(30,58,138,0.45), 0 1px 4px rgba(0,0,0,0.15)",
         cursor: "pointer",
         letterSpacing: "0.02em",
         whiteSpace: "nowrap",
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.background = "linear-gradient(135deg, #172554 0%, #1e40af 100%)";
-        e.currentTarget.style.boxShadow = "0 6px 28px rgba(30,58,138,0.55), 0 2px 6px rgba(0,0,0,0.2)";
-        e.currentTarget.style.transform = "translateY(-2px) scale(1.04)";
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.background = "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)";
-        e.currentTarget.style.boxShadow = "0 4px 20px rgba(30,58,138,0.45), 0 1px 4px rgba(0,0,0,0.15)";
-        e.currentTarget.style.transform = "translateY(0) scale(1)";
       }}
     >
       <span style={{ fontSize: "16px", lineHeight: 1 }}>🏠</span>
