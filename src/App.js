@@ -227,41 +227,41 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
     return (
       <div
         onClick={() => onNavigate("finale")}
-        style={{ border: `2px solid ${borderColor}`, borderRadius: 12, overflow: "hidden", background: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: 0 }}
+        style={{ border: `2px solid ${borderColor}`, borderRadius: 10, overflow: "hidden", background: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: 0 }}
       >
         {/* Header */}
-        <div style={{ background: headerBg, color: headerColor, fontSize: 10, fontWeight: 700, textAlign: "center", padding: "5px 8px", letterSpacing: 1, textTransform: "uppercase" }}>
+        <div style={{ background: headerBg, color: headerColor, fontSize: 9, fontWeight: 700, textAlign: "center", padding: "4px 6px", letterSpacing: 1, textTransform: "uppercase" }}>
           {label}
         </div>
         {/* Score row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 6px" }}>
           <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: winner === teamA ? "#16a34a" : "#1e3a8a" }}>
-              {teamA || <span style={{ color: "#d1d5db", fontStyle: "italic", fontSize: 11 }}>À définir</span>}
+            <div style={{ fontWeight: 700, fontSize: 11, color: winner === teamA ? "#16a34a" : "#1e3a8a", wordBreak: "break-word" }}>
+              {teamA || <span style={{ color: "#d1d5db", fontStyle: "italic", fontSize: 10 }}>—</span>}
             </div>
           </div>
-          <div style={{ background: scoreBg, color: scoreColor, border: `1px solid ${borderColor}`, borderRadius: 8, padding: "4px 10px", fontWeight: 800, fontSize: 14, minWidth: 60, textAlign: "center", flexShrink: 0 }}>
+          <div style={{ background: scoreBg, color: scoreColor, border: `1px solid ${borderColor}`, borderRadius: 6, padding: "3px 6px", fontWeight: 800, fontSize: 12, minWidth: 44, textAlign: "center", flexShrink: 0 }}>
             {score}
           </div>
           <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: winner === teamB ? "#16a34a" : "#1e3a8a" }}>
-              {teamB || <span style={{ color: "#d1d5db", fontStyle: "italic", fontSize: 11 }}>À définir</span>}
+            <div style={{ fontWeight: 700, fontSize: 11, color: winner === teamB ? "#16a34a" : "#1e3a8a", wordBreak: "break-word" }}>
+              {teamB || <span style={{ color: "#d1d5db", fontStyle: "italic", fontSize: 10 }}>—</span>}
             </div>
           </div>
         </div>
         {/* Meta info */}
         {match && (
           isFinale ? (
-            <div style={{ borderTop: "1px solid #f1f5f9", padding: "6px 14px 8px", display: "flex", justifyContent: "space-between", gap: 8 }}>
-              <span style={{ fontSize: 11, color: match.date ? "#94a3b8" : "#d1d5db" }}>📅 {match.date || "—"}</span>
-              <span style={{ fontSize: 11, color: match.terrain ? "#94a3b8" : "#d1d5db" }}>🏟️ {match.terrain || "—"}</span>
-              <span style={{ fontSize: 11, color: match.arbitre ? "#94a3b8" : "#d1d5db" }}>🟨 {match.arbitre || "—"}</span>
+            <div style={{ borderTop: "1px solid #f1f5f9", padding: "4px 8px 5px", display: "flex", justifyContent: "space-between", gap: 4 }}>
+              <span style={{ fontSize: 10, color: match.date ? "#94a3b8" : "#d1d5db" }}>📅 {match.date || "—"}</span>
+              <span style={{ fontSize: 10, color: match.terrain ? "#94a3b8" : "#d1d5db" }}>🏟️ {match.terrain || "—"}</span>
+              <span style={{ fontSize: 10, color: match.arbitre ? "#94a3b8" : "#d1d5db" }}>🟨 {match.arbitre || "—"}</span>
             </div>
           ) : (
-            <div style={{ borderTop: "1px solid #f1f5f9", padding: "6px 10px 8px", display: "flex", flexDirection: "column", gap: 3 }}>
-              <span style={{ fontSize: 11, color: match.date ? "#94a3b8" : "#d1d5db" }}>📅 {match.date || "—"}</span>
-              <span style={{ fontSize: 11, color: match.terrain ? "#94a3b8" : "#d1d5db" }}>🏟️ {match.terrain || "—"}</span>
-              <span style={{ fontSize: 11, color: match.arbitre ? "#94a3b8" : "#d1d5db" }}>🟨 {match.arbitre || "—"}</span>
+            <div style={{ borderTop: "1px solid #f1f5f9", padding: "4px 8px 5px", display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontSize: 10, color: match.date ? "#94a3b8" : "#d1d5db" }}>📅 {match.date || "—"}</span>
+              <span style={{ fontSize: 10, color: match.terrain ? "#94a3b8" : "#d1d5db" }}>🏟️ {match.terrain || "—"}</span>
+              <span style={{ fontSize: 10, color: match.arbitre ? "#94a3b8" : "#d1d5db" }}>🟨 {match.arbitre || "—"}</span>
             </div>
           )
         )}
@@ -284,22 +284,22 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
       </div>
 
       {/* Bracket principal */}
-      <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.1)", border: "1px solid #e2e8f0", padding: 16, overflowX: "auto" }}>
-        <div style={{ minWidth: 400 }}>
+      <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.1)", border: "1px solid #e2e8f0", padding: 12, overflowX: "auto" }}>
+        <div style={{ minWidth: 300 }}>
 
           {/* Ligne 1 : Champion centré en haut */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 0 }}>
             <div style={{ width: "46%" }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: "#b45309", textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 6 }}>Champion</p>
+              <p style={{ fontSize: 9, fontWeight: 700, color: "#b45309", textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 4 }}>Champion</p>
               <div
                 onClick={() => onNavigate("finale")}
-                style={{ border: "2px solid #fbbf24", borderRadius: 12, background: "linear-gradient(160deg,#1e3a8a 0%,#1e40af 50%,#1e3a8a 100%)", textAlign: "center", padding: "14px 10px 12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", minHeight: 110, position: "relative", overflow: "hidden" }}
+                style={{ border: "2px solid #fbbf24", borderRadius: 10, background: "linear-gradient(160deg,#1e3a8a 0%,#1e40af 50%,#1e3a8a 100%)", textAlign: "center", padding: "10px 8px 8px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, cursor: "pointer", minHeight: 90, position: "relative", overflow: "hidden" }}
               >
                 <span style={{ position: "absolute", top: 6, left: 10, fontSize: 8, color: "#fbbf24", opacity: 0.6 }}>★</span>
                 <span style={{ position: "absolute", top: 6, right: 10, fontSize: 8, color: "#fbbf24", opacity: 0.6 }}>★</span>
                 <span style={{ position: "absolute", bottom: 6, left: 14, fontSize: 6, color: "#fbbf24", opacity: 0.4 }}>★</span>
                 <span style={{ position: "absolute", bottom: 6, right: 14, fontSize: 6, color: "#fbbf24", opacity: 0.4 }}>★</span>
-                <svg width="52" height="52" viewBox="0 0 64 64" fill="none">
+                <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
                   <ellipse cx="32" cy="14" rx="16" ry="3" fill="#fde68a" opacity="0.3"/>
                   <path d="M16 8 H48 L44 32 Q42 42 32 44 Q22 42 20 32 Z" fill="url(#cupGold)"/>
                   <path d="M16 12 Q6 16 8 26 Q10 34 20 32" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round"/>
@@ -318,31 +318,39 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
                 </svg>
                 {champion ? (
                   <>
-                    <div style={{ fontWeight: 800, color: "#fde68a", fontSize: 15, letterSpacing: 0.5, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{champion}</div>
-                    <div style={{ fontSize: 9, color: "#fbbf24", fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", opacity: 0.9 }}>Champion du tournoi</div>
+                    <div style={{ fontWeight: 800, color: "#fde68a", fontSize: 13, letterSpacing: 0.5, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{champion}</div>
+                    <div style={{ fontSize: 8, color: "#fbbf24", fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", opacity: 0.9 }}>Champion du tournoi</div>
                   </>
                 ) : (
-                  <div style={{ color: "#93c5fd", fontSize: 10, fontStyle: "italic", opacity: 0.8 }}>Vainqueur de la finale</div>
+                  <div style={{ color: "#93c5fd", fontSize: 9, fontStyle: "italic", opacity: 0.8 }}>Vainqueur de la finale</div>
                 )}
               </div>
             </div>
           </div>
 
           {/* Connecteurs SVG : Champion → DF1 et DF2 */}
-          <div style={{ height: 32 }}>
-            <svg width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" style={{ display: "block" }}>
-              {/* Ligne depuis centre du Champion vers DF1 */}
-              <line x1="50" y1="0" x2="50" y2="16" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
-              <line x1="50" y1="16" x2="23" y2="16" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
-              <line x1="23" y1="16" x2="23" y2="32" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
-              {/* Ligne depuis centre du Champion vers DF2 */}
-              <line x1="50" y1="16" x2="77" y2="16" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
-              <line x1="77" y1="16" x2="77" y2="32" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
+          <div style={{ height: 36 }}>
+            <svg width="100%" height="36" viewBox="0 0 100 36" preserveAspectRatio="none" style={{ display: "block" }}>
+              <defs>
+                <marker id="arrowDown1" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="5" markerHeight="5" orient="auto">
+                  <path d="M1 1 L5 9 L9 1" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </marker>
+                <marker id="arrowDown2" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="5" markerHeight="5" orient="auto">
+                  <path d="M1 1 L5 9 L9 1" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </marker>
+              </defs>
+              {/* Ligne centrale vers DF1 */}
+              <line x1="50" y1="0" x2="50" y2="16" stroke="#cbd5e1" strokeWidth="0.6"/>
+              <line x1="50" y1="16" x2="25" y2="16" stroke="#cbd5e1" strokeWidth="0.6"/>
+              <line x1="25" y1="16" x2="25" y2="30" stroke="#cbd5e1" strokeWidth="0.6" markerEnd="url(#arrowDown1)"/>
+              {/* Ligne centrale vers DF2 */}
+              <line x1="50" y1="16" x2="75" y2="16" stroke="#cbd5e1" strokeWidth="0.6"/>
+              <line x1="75" y1="16" x2="75" y2="30" stroke="#cbd5e1" strokeWidth="0.6" markerEnd="url(#arrowDown2)"/>
             </svg>
           </div>
 
           {/* Ligne 2 : DF1 à gauche, DF2 à droite */}
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: 8 }}>
             <div style={{ flex: 1 }}>
               <MatchCard label="Demi-finale 1" teamA={team1} teamB={team4} match={finaleMatches[0]} showMeta={true} />
             </div>
@@ -354,19 +362,23 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
           {/* Connecteurs SVG : DF1 et DF2 convergent vers la Finale */}
           <div style={{ height: 36 }}>
             <svg width="100%" height="36" viewBox="0 0 100 36" preserveAspectRatio="none" style={{ display: "block" }}>
+              <defs>
+                <marker id="arrowDown3" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="5" markerHeight="5" orient="auto">
+                  <path d="M1 1 L5 9 L9 1" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </marker>
+              </defs>
               <line x1="25" y1="0" x2="25" y2="18" stroke="#cbd5e1" strokeWidth="0.6"/>
               <line x1="25" y1="18" x2="50" y2="18" stroke="#cbd5e1" strokeWidth="0.6"/>
               <line x1="75" y1="0" x2="75" y2="18" stroke="#cbd5e1" strokeWidth="0.6"/>
               <line x1="75" y1="18" x2="50" y2="18" stroke="#cbd5e1" strokeWidth="0.6"/>
-              <line x1="50" y1="18" x2="50" y2="30" stroke="#cbd5e1" strokeWidth="0.6"/>
-              <polygon points="50,36 47,29 53,29" fill="#cbd5e1"/>
+              <line x1="50" y1="18" x2="50" y2="30" stroke="#cbd5e1" strokeWidth="0.6" markerEnd="url(#arrowDown3)"/>
             </svg>
           </div>
 
           {/* Finale en bas au centre */}
           <div style={{ display: "flex", justifyContent: "center" }}>
             <div style={{ width: "100%" }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: "#d97706", textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 6 }}>🏆 Finale</p>
+              <p style={{ fontSize: 9, fontWeight: 700, color: "#d97706", textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 4 }}>🏆 Finale</p>
               <MatchCard
                 label="Finale"
                 teamA={finalisteA ? finalisteA : "DF1"}
