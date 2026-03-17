@@ -63,66 +63,6 @@ const BackButton = ({ onBack }) => (
   </button>
 );
 
-// ================= FLOATING BACK BUTTON =================
-const FloatingBackButton = ({ onBack }) => {
-  const [visible, setVisible] = useState(false);
-  const [hovered, setHovered] = useState(false);
-
-  useEffect(() => {
-    // Apparaît après un court délai dès l'entrée dans la page
-    const timer = setTimeout(() => setVisible(true), 300);
-    // Se cache quand l'utilisateur revient tout en haut
-    const handleScroll = () => {
-      setVisible(window.scrollY <= 80 ? false : true);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  return (
-    <button
-      onClick={onBack}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      aria-label="Retour à l'accueil"
-      style={{
-        position: "fixed",
-        bottom: "24px",
-        right: "20px",
-        zIndex: 9999,
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0) scale(1)" : "translateY(16px) scale(0.85)",
-        pointerEvents: visible ? "auto" : "none",
-        transition: "opacity 0.3s ease, transform 0.3s ease, background 0.2s ease, box-shadow 0.2s ease",
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        background: hovered
-          ? "linear-gradient(135deg, #172554 0%, #1e40af 100%)"
-          : "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)",
-        color: "#ffffff",
-        border: "none",
-        borderRadius: "999px",
-        padding: "12px 20px",
-        fontWeight: "800",
-        fontSize: "13px",
-        boxShadow: hovered
-          ? "0 6px 28px rgba(30,58,138,0.55), 0 2px 6px rgba(0,0,0,0.2)"
-          : "0 4px 20px rgba(30,58,138,0.45), 0 1px 4px rgba(0,0,0,0.15)",
-        cursor: "pointer",
-        letterSpacing: "0.02em",
-        whiteSpace: "nowrap",
-      }}
-    >
-      <span style={{ fontSize: "16px", lineHeight: 1 }}>🏠</span>
-      Accueil
-    </button>
-  );
-};
-
 // ================= PAGE HEADER =================
 const PageHeader = ({ icon, title, subtitle }) => (
   <div className="flex items-center gap-3 mb-6">
@@ -227,6 +167,196 @@ const FinaleMatchCard = ({ label, equipeA, equipeB, match, isAdmin, onChangeScor
   );
 };
 
+// ================= HOME FINALE BRACKET =================
+const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
+  const team1 = dfTeams.df1A || "";
+  const team4 = dfTeams.df1B || "";
+  const team2 = dfTeams.df2A || "";
+  const team3 = dfTeams.df2B || "";
+
+  const getWinner = (match, tA, tB) => {
+    if (!match || match.scoreA === "" || match.scoreB === "") return null;
+    const a = parseInt(match.scoreA), b = parseInt(match.scoreB);
+    return a > b ? tA : b > a ? tB : null;
+  };
+
+  const finalisteA = getWinner(finaleMatches[0], team1, team4);
+  const finalisteB = getWinner(finaleMatches[1], team2, team3);
+  const champion = finalisteA && finalisteB ? getWinner(finaleMatches[2], finalisteA, finalisteB) : null;
+
+  const fmScore = (match) =>
+    match && match.scoreA !== "" && match.scoreB !== ""
+      ? `${match.scoreA} - ${match.scoreB}` : "— : —";
+
+  // Carte match en inline styles purs
+  const MatchCard = ({ label, teamA, teamB, match, headerBg = "#1e3a8a", headerColor = "#fff", borderColor = "#bfdbfe", scoreBg = "#eff6ff", scoreColor = "#1e3a8a", isFinale = false }) => {
+    const score = fmScore(match);
+    const winner = match ? getWinner(match, teamA, teamB) : null;
+    return (
+      <div
+        onClick={() => onNavigate("finale")}
+        style={{ border: `2px solid ${borderColor}`, borderRadius: 12, overflow: "hidden", background: "#fff", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: 0 }}
+      >
+        {/* Header */}
+        <div style={{ background: headerBg, color: headerColor, fontSize: 10, fontWeight: 700, textAlign: "center", padding: "5px 8px", letterSpacing: 1, textTransform: "uppercase" }}>
+          {label}
+        </div>
+        {/* Score row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 10px" }}>
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: winner === teamA ? "#16a34a" : "#1e3a8a" }}>
+              {teamA || <span style={{ color: "#d1d5db", fontStyle: "italic", fontSize: 11 }}>À définir</span>}
+            </div>
+          </div>
+          <div style={{ background: scoreBg, color: scoreColor, border: `1px solid ${borderColor}`, borderRadius: 8, padding: "4px 10px", fontWeight: 800, fontSize: 14, minWidth: 60, textAlign: "center", flexShrink: 0 }}>
+            {score}
+          </div>
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: winner === teamB ? "#16a34a" : "#1e3a8a" }}>
+              {teamB || <span style={{ color: "#d1d5db", fontStyle: "italic", fontSize: 11 }}>À définir</span>}
+            </div>
+          </div>
+        </div>
+        {/* Meta info */}
+        {match && (
+          isFinale ? (
+            <div style={{ borderTop: "1px solid #f1f5f9", padding: "6px 14px 8px", display: "flex", justifyContent: "space-between", gap: 8 }}>
+              <span style={{ fontSize: 11, color: match.date ? "#94a3b8" : "#d1d5db" }}>📅 {match.date || "—"}</span>
+              <span style={{ fontSize: 11, color: match.terrain ? "#94a3b8" : "#d1d5db" }}>🏟️ {match.terrain || "—"}</span>
+              <span style={{ fontSize: 11, color: match.arbitre ? "#94a3b8" : "#d1d5db" }}>🟨 {match.arbitre || "—"}</span>
+            </div>
+          ) : (
+            <div style={{ borderTop: "1px solid #f1f5f9", padding: "6px 10px 8px", display: "flex", flexDirection: "column", gap: 3 }}>
+              <span style={{ fontSize: 11, color: match.date ? "#94a3b8" : "#d1d5db" }}>📅 {match.date || "—"}</span>
+              <span style={{ fontSize: 11, color: match.terrain ? "#94a3b8" : "#d1d5db" }}>🏟️ {match.terrain || "—"}</span>
+              <span style={{ fontSize: 11, color: match.arbitre ? "#94a3b8" : "#d1d5db" }}>🟨 {match.arbitre || "—"}</span>
+            </div>
+          )
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      {/* Titre */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <span style={{ fontSize: 20 }}>🏆</span>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: "#1e3a8a", margin: 0 }}>Phase finale</h2>
+        <button
+          onClick={() => onNavigate("finale")}
+          style={{ marginLeft: "auto", fontSize: 12, color: "#2563eb", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
+        >
+          Voir détails →
+        </button>
+      </div>
+
+      {/* Bracket principal */}
+      <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.1)", border: "1px solid #e2e8f0", padding: 16, overflowX: "auto" }}>
+        <div style={{ minWidth: 480 }}>
+
+          {/* Ligne 1 : DF1 | Champion | DF2 */}
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+
+            {/* DF1 à gauche */}
+            <div style={{ flex: 1 }}>
+              <MatchCard label="Demi-finale 1" teamA={team1} teamB={team4} match={finaleMatches[0]} showMeta={true} />
+            </div>
+
+            {/* Champion au centre */}
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: "#b45309", textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 6 }}>Champion</p>
+              <div
+                onClick={() => onNavigate("finale")}
+                style={{ border: "2px solid #fbbf24", borderRadius: 12, background: "linear-gradient(160deg,#1e3a8a 0%,#1e40af 50%,#1e3a8a 100%)", textAlign: "center", padding: "14px 10px 12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", minHeight: 110, position: "relative", overflow: "hidden" }}
+              >
+                {/* Étoiles décoratives */}
+                <span style={{ position: "absolute", top: 6, left: 10, fontSize: 8, color: "#fbbf24", opacity: 0.6 }}>★</span>
+                <span style={{ position: "absolute", top: 6, right: 10, fontSize: 8, color: "#fbbf24", opacity: 0.6 }}>★</span>
+                <span style={{ position: "absolute", bottom: 6, left: 14, fontSize: 6, color: "#fbbf24", opacity: 0.4 }}>★</span>
+                <span style={{ position: "absolute", bottom: 6, right: 14, fontSize: 6, color: "#fbbf24", opacity: 0.4 }}>★</span>
+
+                {/* Coupe SVG officielle */}
+                <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Reflet haut de la coupe */}
+                  <ellipse cx="32" cy="14" rx="16" ry="3" fill="#fde68a" opacity="0.3"/>
+                  {/* Corps principal de la coupe */}
+                  <path d="M16 8 H48 L44 32 Q42 42 32 44 Q22 42 20 32 Z" fill="url(#cupGold)"/>
+                  {/* Anses gauche */}
+                  <path d="M16 12 Q6 16 8 26 Q10 34 20 32" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round"/>
+                  {/* Anses droite */}
+                  <path d="M48 12 Q58 16 56 26 Q54 34 44 32" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round"/>
+                  {/* Pied / tige */}
+                  <rect x="28" y="44" width="8" height="8" rx="1" fill="#f59e0b"/>
+                  {/* Base */}
+                  <rect x="22" y="52" width="20" height="4" rx="2" fill="#d97706"/>
+                  {/* Reflet sur le corps */}
+                  <path d="M22 12 Q24 28 24 36" stroke="#fde68a" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+                  {/* Étoile au centre de la coupe */}
+                  <text x="32" y="30" textAnchor="middle" fontSize="12" fill="#fef3c7" fontWeight="bold" opacity="0.9">★</text>
+                  <defs>
+                    <linearGradient id="cupGold" x1="16" y1="8" x2="48" y2="44" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#fde68a"/>
+                      <stop offset="40%" stopColor="#f59e0b"/>
+                      <stop offset="100%" stopColor="#b45309"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+
+                {champion ? (
+                  <>
+                    <div style={{ fontWeight: 800, color: "#fde68a", fontSize: 15, letterSpacing: 0.5, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{champion}</div>
+                    <div style={{ fontSize: 9, color: "#fbbf24", fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", opacity: 0.9 }}>Champion du tournoi</div>
+                  </>
+                ) : (
+                  <div style={{ color: "#93c5fd", fontSize: 10, fontStyle: "italic", opacity: 0.8 }}>Vainqueur de la finale</div>
+                )}
+              </div>
+            </div>
+
+            {/* DF2 à droite */}
+            <div style={{ flex: 1 }}>
+              <MatchCard label="Demi-finale 2" teamA={team2} teamB={team3} match={finaleMatches[1]} showMeta={true} />
+            </div>
+
+          </div>
+
+          {/* Connecteurs SVG : DF1 et DF2 convergent vers la Finale en bas au centre */}
+          <div style={{ height: 36 }}>
+            <svg width="100%" height="36" viewBox="0 0 100 36" preserveAspectRatio="none" style={{ display: "block" }}>
+              <line x1="17" y1="0" x2="17" y2="18" stroke="#cbd5e1" strokeWidth="0.5"/>
+              <line x1="17" y1="18" x2="50" y2="18" stroke="#cbd5e1" strokeWidth="0.5"/>
+              <line x1="83" y1="0" x2="83" y2="18" stroke="#cbd5e1" strokeWidth="0.5"/>
+              <line x1="83" y1="18" x2="50" y2="18" stroke="#cbd5e1" strokeWidth="0.5"/>
+              <line x1="50" y1="18" x2="50" y2="30" stroke="#cbd5e1" strokeWidth="0.5"/>
+              <polygon points="50,36 47,29 53,29" fill="#cbd5e1"/>
+            </svg>
+          </div>
+
+          {/* Finale en bas au centre */}
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <div style={{ width: "100%" }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: "#d97706", textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 6 }}>🏆 Finale</p>
+              <MatchCard
+                label="Finale"
+                teamA={finalisteA ? finalisteA : "DF1"}
+                teamB={finalisteB ? finalisteB : "DF2"}
+                match={finaleMatches[2]}
+                headerBg="#b45309"
+                borderColor="#fde68a"
+                scoreBg="#fffbeb"
+                scoreColor="#92400e"
+                isFinale={true}
+              />
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // =================================================================================
 //   MAIN APP
 // =================================================================================
@@ -237,6 +367,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingOrder, setEditingOrder] = useState(false);
+  const [showResetFinaleModal, setShowResetFinaleModal] = useState(false);
 
   const [regles, setRegles] = useState(
 `1. Victoire = 3 points
@@ -281,11 +412,6 @@ function App() {
     };
     load();
   }, []);
-
-  // Reset scroll to top on page change
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [page]);
 
   const save = async (m, r, fm, dt) => {
     setSaving(true);
@@ -334,19 +460,14 @@ function App() {
     }
   };
 
-  // ---- Classement ----
-  // Fonction H2H : points de teamA contre teamB en confrontation directe
-  const getH2HPoints = (teamA, teamB) => {
-    let ptsA=0, ptsB=0;
-    matches.forEach(m => {
-      const a=parseInt(m.scoreA)||0, b=parseInt(m.scoreB)||0;
-      if(m.scoreA===""||m.scoreB==="") return;
-      if(m.equipeA===teamA && m.equipeB===teamB){ if(a>b) ptsA+=3; else if(a===b) { ptsA+=1; ptsB+=1; } else ptsB+=3; }
-      if(m.equipeA===teamB && m.equipeB===teamA){ if(a>b) ptsB+=3; else if(a===b) { ptsA+=1; ptsB+=1; } else ptsA+=3; }
-    });
-    return ptsA - ptsB;
+  const handleResetFinale = async () => {
+    const ff = generateFinaleMatches();
+    const fd = { df1A:"", df1B:"", df2A:"", df2B:"" };
+    setFinaleMatches(ff); setDfTeams(fd);
+    await save(matches, regles, ff, fd);
   };
 
+  // ---- Classement ----
   const classement = TEAMS.map(team => {
     let points=0,bm=0,be=0,cj=0,cr=0,mj=0;
     matches.forEach(m => {
@@ -355,15 +476,7 @@ function App() {
       if(m.equipeB===team){ if(m.scoreA!==""&&m.scoreB!=="") mj++; if(b>a) points+=3; else if(a===b&&m.scoreA!=="") points+=1; bm+=b;be+=a;cj+=m.jaunesB.length;cr+=m.rougesB.length; }
     });
     return {team,mj,points,bm,be,diff:bm-be,cj,cr};
-  }).sort((a,b) => {
-    if(b.points !== a.points) return b.points - a.points;
-    if(b.diff   !== a.diff)   return b.diff   - a.diff;
-    if(b.bm     !== a.bm)     return b.bm     - a.bm;
-    const h2h = getH2HPoints(a.team, b.team);
-    if(h2h !== 0) return -h2h;
-    if(a.cr !== b.cr) return a.cr - b.cr;
-    return a.cj - b.cj;
-  });
+  }).sort((a,b)=>b.points-a.points||b.diff-a.diff||b.bm-a.bm||a.cr-b.cr||a.cj-b.cj);
 
   // Équipes phase finale : uniquement ce que l'admin a saisi, sinon "?" masqué
   const team1 = dfTeams.df1A || "";
@@ -427,6 +540,13 @@ function App() {
           </div>
         )}
 
+        {/* ===== BRACKET PHASE FINALE ===== */}
+        <HomeFinaleBracket
+          finaleMatches={finaleMatches}
+          dfTeams={dfTeams}
+          onNavigate={setPage}
+        />
+
         {/* Classement */}
         <div className="mb-8">
           <h2 className="text-xl font-extrabold mb-3 text-blue-900">🏅 Classement des équipes</h2>
@@ -438,7 +558,8 @@ function App() {
                   <th className="p-3">Équipe</th>
                   <th className="p-3">MJ</th>
                   <th className="p-3">Pts</th>
-                  <th className="p-3">B</th>
+                  <th className="p-3">BM</th>
+                  <th className="p-3">BE</th>
                   <th className="p-3">Diff</th>
                   <th className="p-3">CR</th>
                   <th className="p-3">CJ</th>
@@ -454,7 +575,8 @@ function App() {
                     <td className="p-3 font-bold text-blue-900">{c.team}</td>
                     <td className="p-3">{c.mj}</td>
                     <td className="p-3 font-extrabold text-blue-900 text-base">{c.points}</td>
-                    <td className="p-3">{c.bm}/{c.be}</td>
+                    <td className="p-3">{c.bm}</td>
+                    <td className="p-3">{c.be}</td>
                     <td className="p-3 font-semibold">{c.diff}</td>
                     <td className="p-3 text-red-600 font-bold">{c.cr}</td>
                     <td className="p-3 text-yellow-600 font-bold">{c.cj}</td>
@@ -688,9 +810,6 @@ function App() {
         </div>
         )}
       </div>
-
-      {/* ✅ Bouton flottant retour accueil */}
-      <FloatingBackButton onBack={() => { setEditingOrder(false); setPage("home"); }} />
     </div>
   );
 
@@ -705,39 +824,93 @@ function App() {
         <PageHeader icon="🏆" title="Phase finale" subtitle="Demi-finales & Finale du tournoi"/>
 
         {isAdmin && (
-          <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 mb-6">
-            <div className="font-bold text-orange-700 mb-3 text-sm">✏️ Saisir les équipes des demi-finales</div>
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <div className="text-xs font-bold text-gray-500 mb-2 uppercase">Demi-finale 1</div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <select value={dfTeams.df1A} onChange={e=>handleDfTeamChange("df1A",e.target.value)} className="border-2 border-blue-300 rounded-xl px-2 py-1.5 text-sm font-bold text-blue-900 bg-white flex-1">
-                    <option value="">— Choisir équipe —</option>
-                    {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
-                  </select>
-                  <span className="text-gray-400 font-bold text-sm">vs</span>
-                  <select value={dfTeams.df1B} onChange={e=>handleDfTeamChange("df1B",e.target.value)} className="border-2 border-blue-300 rounded-xl px-2 py-1.5 text-sm font-bold text-blue-900 bg-white flex-1">
-                    <option value="">— Choisir équipe —</option>
-                    {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
-                  </select>
+          <>
+            {/* Modal de confirmation reset */}
+            {showResetFinaleModal && (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+                <div style={{ background: "#fff", borderRadius: 20, padding: 28, maxWidth: 360, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.3)", border: "1px solid #fee2e2" }}>
+                  {/* Icône */}
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                    <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#fef2f2", border: "2px solid #fecaca", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                  {/* Titre */}
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: "#111827", textAlign: "center", margin: "0 0 8px" }}>Réinitialiser la phase finale ?</h3>
+                  {/* Description */}
+                  <p style={{ fontSize: 13, color: "#6b7280", textAlign: "center", margin: "0 0 8px", lineHeight: 1.6 }}>
+                    Cette action effacera <strong style={{ color: "#374151" }}>toutes les données</strong> de la phase finale :
+                  </p>
+                  <ul style={{ fontSize: 12, color: "#6b7280", margin: "0 0 20px", paddingLeft: 20, lineHeight: 2 }}>
+                    <li>Équipes des demi-finales</li>
+                    <li>Scores des demi-finales et de la finale</li>
+                    <li>Dates, terrains et arbitres</li>
+                    <li>Buteurs et passes décisives</li>
+                  </ul>
+                  {/* Boutons */}
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button
+                      onClick={() => setShowResetFinaleModal(false)}
+                      style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "2px solid #e5e7eb", background: "#f9fafb", color: "#374151", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={async () => { await handleResetFinale(); setShowResetFinaleModal(false); }}
+                      style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#ef4444,#dc2626)", color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer", boxShadow: "0 4px 12px rgba(239,68,68,0.35)" }}
+                    >
+                      🗑️ Réinitialiser
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div>
-                <div className="text-xs font-bold text-gray-500 mb-2 uppercase">Demi-finale 2</div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <select value={dfTeams.df2A} onChange={e=>handleDfTeamChange("df2A",e.target.value)} className="border-2 border-blue-300 rounded-xl px-2 py-1.5 text-sm font-bold text-blue-900 bg-white flex-1">
-                    <option value="">— Choisir équipe —</option>
-                    {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
-                  </select>
-                  <span className="text-gray-400 font-bold text-sm">vs</span>
-                  <select value={dfTeams.df2B} onChange={e=>handleDfTeamChange("df2B",e.target.value)} className="border-2 border-blue-300 rounded-xl px-2 py-1.5 text-sm font-bold text-blue-900 bg-white flex-1">
-                    <option value="">— Choisir équipe —</option>
-                    {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
-                  </select>
+            )}
+
+            <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="font-bold text-orange-700 text-sm">✏️ Saisir les équipes des demi-finales</div>
+                <button
+                  onClick={() => setShowResetFinaleModal(true)}
+                  className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-bold text-xs px-3 py-1.5 rounded-xl transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Réinitialiser
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <div className="text-xs font-bold text-gray-500 mb-2 uppercase">Demi-finale 1</div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <select value={dfTeams.df1A} onChange={e=>handleDfTeamChange("df1A",e.target.value)} className="border-2 border-blue-300 rounded-xl px-2 py-1.5 text-sm font-bold text-blue-900 bg-white flex-1">
+                      <option value="">— Choisir équipe —</option>
+                      {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
+                    </select>
+                    <span className="text-gray-400 font-bold text-sm">vs</span>
+                    <select value={dfTeams.df1B} onChange={e=>handleDfTeamChange("df1B",e.target.value)} className="border-2 border-blue-300 rounded-xl px-2 py-1.5 text-sm font-bold text-blue-900 bg-white flex-1">
+                      <option value="">— Choisir équipe —</option>
+                      {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-gray-500 mb-2 uppercase">Demi-finale 2</div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <select value={dfTeams.df2A} onChange={e=>handleDfTeamChange("df2A",e.target.value)} className="border-2 border-blue-300 rounded-xl px-2 py-1.5 text-sm font-bold text-blue-900 bg-white flex-1">
+                      <option value="">— Choisir équipe —</option>
+                      {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
+                    </select>
+                    <span className="text-gray-400 font-bold text-sm">vs</span>
+                    <select value={dfTeams.df2B} onChange={e=>handleDfTeamChange("df2B",e.target.value)} className="border-2 border-blue-300 rounded-xl px-2 py-1.5 text-sm font-bold text-blue-900 bg-white flex-1">
+                      <option value="">— Choisir équipe —</option>
+                      {TEAMS.map(t=><option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Bracket */}
@@ -767,12 +940,12 @@ function App() {
           </div>
         </div>
 
-        <FinaleMatchCard label="Demi-finale 1 — 1er vs 4ème" equipeA={team1} equipeB={team4}
+        <FinaleMatchCard label="Demi-finale 1" equipeA={team1} equipeB={team4}
           match={finaleMatches[0]} isAdmin={isAdmin} matchIndex={0}
           onChangeScore={handleFinaleScore} onChangeMeta={handleFinaleMeta}
           onAddPlayer={addFinalePlayer} onUpdatePlayer={updateFinalePlayer} onRemovePlayer={removeFinalePlayer}/>
 
-        <FinaleMatchCard label="Demi-finale 2 — 2ème vs 3ème" equipeA={team2} equipeB={team3}
+        <FinaleMatchCard label="Demi-finale 2" equipeA={team2} equipeB={team3}
           match={finaleMatches[1]} isAdmin={isAdmin} matchIndex={1}
           onChangeScore={handleFinaleScore} onChangeMeta={handleFinaleMeta}
           onAddPlayer={addFinalePlayer} onUpdatePlayer={updateFinalePlayer} onRemovePlayer={removeFinalePlayer}/>
@@ -799,9 +972,6 @@ function App() {
           ) : null;
         })()}
       </div>
-
-      {/* ✅ Bouton flottant retour accueil */}
-      <FloatingBackButton onBack={() => setPage("home")} />
     </div>
   );
 
@@ -838,9 +1008,6 @@ function App() {
           </table>
         </div>
       </div>
-
-      {/* ✅ Bouton flottant retour accueil */}
-      <FloatingBackButton onBack={() => setPage("home")} />
     </div>
   );
 
@@ -877,9 +1044,6 @@ function App() {
           </table>
         </div>
       </div>
-
-      {/* ✅ Bouton flottant retour accueil */}
-      <FloatingBackButton onBack={() => setPage("home")} />
     </div>
   );
 }
