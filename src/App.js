@@ -82,6 +82,38 @@ const TopBar = ({ saving }) => (
   </div>
 );
 
+// ================= FLOATING HOME BUTTON =================
+const FloatingHomeButton = ({ onBack }) => (
+  <button
+    onClick={onBack}
+    style={{
+      position: "fixed",
+      bottom: 24,
+      right: 20,
+      zIndex: 100,
+      width: 52,
+      height: 52,
+      borderRadius: "50%",
+      background: "linear-gradient(135deg,#1e40af,#1e3a8a)",
+      border: "2px solid rgba(255,255,255,0.2)",
+      boxShadow: "0 4px 20px rgba(30,58,138,0.45)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      transition: "transform 0.15s, box-shadow 0.15s",
+    }}
+    onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.1)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(30,58,138,0.6)"; }}
+    onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(30,58,138,0.45)"; }}
+    title="Retour à l'accueil"
+  >
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M3 12L12 3l9 9" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  </button>
+);
+
 // ================= FINALE MATCH CARD =================
 const FinaleMatchCard = ({ label, equipeA, equipeB, match, isAdmin, onChangeScore, onChangeMeta, onAddPlayer, onUpdatePlayer, onRemovePlayer, matchIndex }) => {
   const scoreDisplay = match && match.scoreA !== "" && match.scoreB !== ""
@@ -253,46 +285,28 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
 
       {/* Bracket principal */}
       <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.1)", border: "1px solid #e2e8f0", padding: 16, overflowX: "auto" }}>
-        <div style={{ minWidth: 480 }}>
+        <div style={{ minWidth: 400 }}>
 
-          {/* Ligne 1 : DF1 | Champion | DF2 */}
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-
-            {/* DF1 à gauche */}
-            <div style={{ flex: 1 }}>
-              <MatchCard label="Demi-finale 1" teamA={team1} teamB={team4} match={finaleMatches[0]} showMeta={true} />
-            </div>
-
-            {/* Champion au centre */}
-            <div style={{ flex: 1 }}>
+          {/* Ligne 1 : Champion centré en haut */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 0 }}>
+            <div style={{ width: "46%" }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: "#b45309", textTransform: "uppercase", letterSpacing: 1, textAlign: "center", marginBottom: 6 }}>Champion</p>
               <div
                 onClick={() => onNavigate("finale")}
                 style={{ border: "2px solid #fbbf24", borderRadius: 12, background: "linear-gradient(160deg,#1e3a8a 0%,#1e40af 50%,#1e3a8a 100%)", textAlign: "center", padding: "14px 10px 12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", minHeight: 110, position: "relative", overflow: "hidden" }}
               >
-                {/* Étoiles décoratives */}
                 <span style={{ position: "absolute", top: 6, left: 10, fontSize: 8, color: "#fbbf24", opacity: 0.6 }}>★</span>
                 <span style={{ position: "absolute", top: 6, right: 10, fontSize: 8, color: "#fbbf24", opacity: 0.6 }}>★</span>
                 <span style={{ position: "absolute", bottom: 6, left: 14, fontSize: 6, color: "#fbbf24", opacity: 0.4 }}>★</span>
                 <span style={{ position: "absolute", bottom: 6, right: 14, fontSize: 6, color: "#fbbf24", opacity: 0.4 }}>★</span>
-
-                {/* Coupe SVG officielle */}
-                <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* Reflet haut de la coupe */}
+                <svg width="52" height="52" viewBox="0 0 64 64" fill="none">
                   <ellipse cx="32" cy="14" rx="16" ry="3" fill="#fde68a" opacity="0.3"/>
-                  {/* Corps principal de la coupe */}
                   <path d="M16 8 H48 L44 32 Q42 42 32 44 Q22 42 20 32 Z" fill="url(#cupGold)"/>
-                  {/* Anses gauche */}
                   <path d="M16 12 Q6 16 8 26 Q10 34 20 32" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round"/>
-                  {/* Anses droite */}
                   <path d="M48 12 Q58 16 56 26 Q54 34 44 32" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round"/>
-                  {/* Pied / tige */}
                   <rect x="28" y="44" width="8" height="8" rx="1" fill="#f59e0b"/>
-                  {/* Base */}
                   <rect x="22" y="52" width="20" height="4" rx="2" fill="#d97706"/>
-                  {/* Reflet sur le corps */}
                   <path d="M22 12 Q24 28 24 36" stroke="#fde68a" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-                  {/* Étoile au centre de la coupe */}
                   <text x="32" y="30" textAnchor="middle" fontSize="12" fill="#fef3c7" fontWeight="bold" opacity="0.9">★</text>
                   <defs>
                     <linearGradient id="cupGold" x1="16" y1="8" x2="48" y2="44" gradientUnits="userSpaceOnUse">
@@ -302,7 +316,6 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
                     </linearGradient>
                   </defs>
                 </svg>
-
                 {champion ? (
                   <>
                     <div style={{ fontWeight: 800, color: "#fde68a", fontSize: 15, letterSpacing: 0.5, textShadow: "0 1px 4px rgba(0,0,0,0.4)" }}>{champion}</div>
@@ -313,22 +326,39 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
                 )}
               </div>
             </div>
+          </div>
 
-            {/* DF2 à droite */}
+          {/* Connecteurs SVG : Champion → DF1 et DF2 */}
+          <div style={{ height: 32 }}>
+            <svg width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" style={{ display: "block" }}>
+              {/* Ligne depuis centre du Champion vers DF1 */}
+              <line x1="50" y1="0" x2="50" y2="16" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
+              <line x1="50" y1="16" x2="23" y2="16" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
+              <line x1="23" y1="16" x2="23" y2="32" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
+              {/* Ligne depuis centre du Champion vers DF2 */}
+              <line x1="50" y1="16" x2="77" y2="16" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
+              <line x1="77" y1="16" x2="77" y2="32" stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="3 2"/>
+            </svg>
+          </div>
+
+          {/* Ligne 2 : DF1 à gauche, DF2 à droite */}
+          <div style={{ display: "flex", gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <MatchCard label="Demi-finale 1" teamA={team1} teamB={team4} match={finaleMatches[0]} showMeta={true} />
+            </div>
             <div style={{ flex: 1 }}>
               <MatchCard label="Demi-finale 2" teamA={team2} teamB={team3} match={finaleMatches[1]} showMeta={true} />
             </div>
-
           </div>
 
-          {/* Connecteurs SVG : DF1 et DF2 convergent vers la Finale en bas au centre */}
+          {/* Connecteurs SVG : DF1 et DF2 convergent vers la Finale */}
           <div style={{ height: 36 }}>
             <svg width="100%" height="36" viewBox="0 0 100 36" preserveAspectRatio="none" style={{ display: "block" }}>
-              <line x1="17" y1="0" x2="17" y2="18" stroke="#cbd5e1" strokeWidth="0.5"/>
-              <line x1="17" y1="18" x2="50" y2="18" stroke="#cbd5e1" strokeWidth="0.5"/>
-              <line x1="83" y1="0" x2="83" y2="18" stroke="#cbd5e1" strokeWidth="0.5"/>
-              <line x1="83" y1="18" x2="50" y2="18" stroke="#cbd5e1" strokeWidth="0.5"/>
-              <line x1="50" y1="18" x2="50" y2="30" stroke="#cbd5e1" strokeWidth="0.5"/>
+              <line x1="25" y1="0" x2="25" y2="18" stroke="#cbd5e1" strokeWidth="0.6"/>
+              <line x1="25" y1="18" x2="50" y2="18" stroke="#cbd5e1" strokeWidth="0.6"/>
+              <line x1="75" y1="0" x2="75" y2="18" stroke="#cbd5e1" strokeWidth="0.6"/>
+              <line x1="75" y1="18" x2="50" y2="18" stroke="#cbd5e1" strokeWidth="0.6"/>
+              <line x1="50" y1="18" x2="50" y2="30" stroke="#cbd5e1" strokeWidth="0.6"/>
               <polygon points="50,36 47,29 53,29" fill="#cbd5e1"/>
             </svg>
           </div>
@@ -558,8 +588,7 @@ function App() {
                   <th className="p-3">Équipe</th>
                   <th className="p-3">MJ</th>
                   <th className="p-3">Pts</th>
-                  <th className="p-3">BM</th>
-                  <th className="p-3">BE</th>
+                  <th className="p-3">B</th>
                   <th className="p-3">Diff</th>
                   <th className="p-3">CR</th>
                   <th className="p-3">CJ</th>
@@ -575,8 +604,7 @@ function App() {
                     <td className="p-3 font-bold text-blue-900">{c.team}</td>
                     <td className="p-3">{c.mj}</td>
                     <td className="p-3 font-extrabold text-blue-900 text-base">{c.points}</td>
-                    <td className="p-3">{c.bm}</td>
-                    <td className="p-3">{c.be}</td>
+                    <td className="p-3"><span className="text-green-700 font-semibold">{c.bm}</span><span className="text-gray-400 mx-0.5">/</span><span className="text-red-500 font-semibold">{c.be}</span></td>
                     <td className="p-3 font-semibold">{c.diff}</td>
                     <td className="p-3 text-red-600 font-bold">{c.cr}</td>
                     <td className="p-3 text-yellow-600 font-bold">{c.cj}</td>
@@ -641,6 +669,7 @@ function App() {
   if (page === "ligue") return (
     <div className="min-h-screen bg-gray-100">
       <TopBar saving={saving}/>
+      <FloatingHomeButton onBack={() => { setEditingOrder(false); setPage("home"); }}/>
       <div className="px-4 pb-10 max-w-3xl mx-auto">
         <BackButton onBack={() => { setEditingOrder(false); setPage("home"); }}/>
         <PageHeader icon="⚽" title="Phase de ligue" subtitle="21 matches — Journée de championnat"/>
@@ -819,6 +848,7 @@ function App() {
   if (page === "finale") return (
     <div className="min-h-screen bg-gray-100">
       <TopBar saving={saving}/>
+      <FloatingHomeButton onBack={() => setPage("home")}/>
       <div className="px-4 pb-10 max-w-2xl mx-auto">
         <BackButton onBack={() => setPage("home")}/>
         <PageHeader icon="🏆" title="Phase finale" subtitle="Demi-finales & Finale du tournoi"/>
@@ -914,31 +944,6 @@ function App() {
         )}
 
         {/* Bracket */}
-        <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-2xl p-4 mb-6 text-white shadow-xl">
-          <div className="text-center font-extrabold text-sm mb-4 tracking-widest uppercase opacity-80">🗓️ Tableau de la phase finale</div>
-          <div className="flex flex-col md:flex-row items-stretch justify-around gap-3">
-            <div className="bg-white/10 rounded-xl p-3 text-center flex-1">
-              <div className="text-xs text-blue-200 font-bold mb-2 uppercase tracking-wide">Demi-finale 1</div>
-              <div className={`font-extrabold text-base ${team1?"text-yellow-300":"text-white/30 italic text-sm"}`}>{team1||"À définir"}</div>
-              <div className="text-blue-300 text-xs my-1">vs</div>
-              <div className={`font-extrabold text-base ${team4?"text-yellow-300":"text-white/30 italic text-sm"}`}>{team4||"À définir"}</div>
-            </div>
-            <div className="flex items-center justify-center text-white/30 font-black text-2xl hidden md:flex">→</div>
-            <div className="bg-yellow-400/20 border-2 border-yellow-400 rounded-xl p-3 text-center flex-1">
-              <div className="text-xs text-yellow-300 font-extrabold mb-2 tracking-widest">🏆 FINALE</div>
-              <div className={`font-extrabold text-base ${finalisteA!=="Vainqueur DF1"?"text-white":"text-white/40 italic text-sm"}`}>{finalisteA}</div>
-              <div className="text-blue-200 text-xs my-1">vs</div>
-              <div className={`font-extrabold text-base ${finalisteB!=="Vainqueur DF2"?"text-white":"text-white/40 italic text-sm"}`}>{finalisteB}</div>
-            </div>
-            <div className="flex items-center justify-center text-white/30 font-black text-2xl hidden md:flex">←</div>
-            <div className="bg-white/10 rounded-xl p-3 text-center flex-1">
-              <div className="text-xs text-blue-200 font-bold mb-2 uppercase tracking-wide">Demi-finale 2</div>
-              <div className={`font-extrabold text-base ${team2?"text-yellow-300":"text-white/30 italic text-sm"}`}>{team2||"À définir"}</div>
-              <div className="text-blue-300 text-xs my-1">vs</div>
-              <div className={`font-extrabold text-base ${team3?"text-yellow-300":"text-white/30 italic text-sm"}`}>{team3||"À définir"}</div>
-            </div>
-          </div>
-        </div>
 
         <FinaleMatchCard label="Demi-finale 1" equipeA={team1} equipeB={team4}
           match={finaleMatches[0]} isAdmin={isAdmin} matchIndex={0}
@@ -981,6 +986,7 @@ function App() {
   if (page === "topGoals") return (
     <div className="min-h-screen bg-gray-100">
       <TopBar saving={saving}/>
+      <FloatingHomeButton onBack={() => setPage("home")}/>
       <div className="px-4 pb-10 max-w-lg mx-auto">
         <BackButton onBack={() => setPage("home")}/>
         <PageHeader icon="🥅" title="Top Goals" subtitle="Classement des meilleurs buteurs"/>
@@ -1017,6 +1023,7 @@ function App() {
   if (page === "topAssists") return (
     <div className="min-h-screen bg-gray-100">
       <TopBar saving={saving}/>
+      <FloatingHomeButton onBack={() => setPage("home")}/>
       <div className="px-4 pb-10 max-w-lg mx-auto">
         <BackButton onBack={() => setPage("home")}/>
         <PageHeader icon="🎯" title="Top Assists" subtitle="Classement des meilleures passes décisives"/>
