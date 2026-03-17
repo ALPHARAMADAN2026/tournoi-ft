@@ -116,11 +116,25 @@ const FloatingHomeButton = ({ onBack }) => (
 
 // ================= FINALE MATCH CARD =================
 const FinaleMatchCard = ({ label, equipeA, equipeB, match, isAdmin, onChangeScore, onChangeMeta, onAddPlayer, onUpdatePlayer, onRemovePlayer, matchIndex }) => {
+  const scoreA = match?.scoreA !== "" ? parseInt(match.scoreA) : null;
+  const scoreB = match?.scoreB !== "" ? parseInt(match.scoreB) : null;
+  const isEgalite = scoreA !== null && scoreB !== null && scoreA === scoreB;
+  const tabA = match?.tabA !== undefined ? match.tabA : "";
+  const tabB = match?.tabB !== undefined ? match.tabB : "";
+
   const scoreDisplay = match && match.scoreA !== "" && match.scoreB !== ""
     ? `${match.scoreA} - ${match.scoreB}` : "— vs —";
-  const winner = match && match.scoreA !== "" && match.scoreB !== ""
-    ? (parseInt(match.scoreA) > parseInt(match.scoreB) ? equipeA : parseInt(match.scoreB) > parseInt(match.scoreA) ? equipeB : null)
-    : null;
+
+  // Vainqueur : si égalité, on regarde les TAB
+  let winner = null;
+  if (scoreA !== null && scoreB !== null) {
+    if (scoreA > scoreB) winner = equipeA;
+    else if (scoreB > scoreA) winner = equipeB;
+    else if (isEgalite && tabA !== "" && tabB !== "") {
+      if (parseInt(tabA) > parseInt(tabB)) winner = equipeA;
+      else if (parseInt(tabB) > parseInt(tabA)) winner = equipeB;
+    }
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border-2 border-blue-100 p-4 mb-4">
@@ -132,17 +146,39 @@ const FinaleMatchCard = ({ label, equipeA, equipeB, match, isAdmin, onChangeScor
           <span className="font-extrabold text-blue-900 text-lg leading-tight text-center">{equipeA || "?"}</span>
           {winner === equipeA && <span className="text-xs text-green-600 font-bold mt-1">🏆 Qualifié</span>}
         </div>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center gap-1">
           {isAdmin && match ? (
-            <div className="flex items-center gap-1">
-              <input type="number" value={match.scoreA} onChange={e => onChangeScore(matchIndex, "scoreA", e.target.value)}
-                className="w-10 border-2 border-blue-300 rounded text-center font-bold text-lg focus:outline-none focus:border-blue-600"/>
-              <span className="font-bold text-gray-400 text-lg">-</span>
-              <input type="number" value={match.scoreB} onChange={e => onChangeScore(matchIndex, "scoreB", e.target.value)}
-                className="w-10 border-2 border-blue-300 rounded text-center font-bold text-lg focus:outline-none focus:border-blue-600"/>
-            </div>
+            <>
+              <div className="flex items-center gap-1">
+                <input type="number" value={match.scoreA} onChange={e => onChangeScore(matchIndex, "scoreA", e.target.value)}
+                  className="w-10 border-2 border-blue-300 rounded text-center font-bold text-lg focus:outline-none focus:border-blue-600"/>
+                <span className="font-bold text-gray-400 text-lg">-</span>
+                <input type="number" value={match.scoreB} onChange={e => onChangeScore(matchIndex, "scoreB", e.target.value)}
+                  className="w-10 border-2 border-blue-300 rounded text-center font-bold text-lg focus:outline-none focus:border-blue-600"/>
+              </div>
+              {isEgalite && (
+                <div className="flex flex-col items-center gap-0.5 mt-1">
+                  <span className="text-xs text-orange-600 font-bold uppercase tracking-wide">🎯 TAB</span>
+                  <div className="flex items-center gap-1">
+                    <input type="number" min="0" max="5" value={tabA} onChange={e => onChangeMeta(matchIndex, "tabA", e.target.value)}
+                      className="w-9 border-2 border-orange-300 rounded text-center font-bold text-base focus:outline-none focus:border-orange-500"/>
+                    <span className="font-bold text-gray-400">-</span>
+                    <input type="number" min="0" max="5" value={tabB} onChange={e => onChangeMeta(matchIndex, "tabB", e.target.value)}
+                      className="w-9 border-2 border-orange-300 rounded text-center font-bold text-base focus:outline-none focus:border-orange-500"/>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
-            <span className="font-extrabold text-gray-700 text-xl px-3">{scoreDisplay}</span>
+            <div className="flex flex-col items-center gap-1">
+              <span className="font-extrabold text-gray-700 text-xl px-3">{scoreDisplay}</span>
+              {isEgalite && tabA !== "" && tabB !== "" && (
+                <div className="flex items-center gap-1 bg-orange-50 border border-orange-200 rounded-lg px-3 py-1">
+                  <span className="text-xs text-orange-600 font-bold">🎯 TAB</span>
+                  <span className="font-extrabold text-orange-700 text-sm">{tabA} - {tabB}</span>
+                </div>
+              )}
+            </div>
           )}
         </div>
         <div className="flex flex-col items-center flex-1">
@@ -209,7 +245,15 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
   const getWinner = (match, tA, tB) => {
     if (!match || match.scoreA === "" || match.scoreB === "") return null;
     const a = parseInt(match.scoreA), b = parseInt(match.scoreB);
-    return a > b ? tA : b > a ? tB : null;
+    if (a > b) return tA;
+    if (b > a) return tB;
+    // égalité — vérifier TAB
+    if (match.tabA !== "" && match.tabB !== "" && match.tabA !== undefined) {
+      const ta = parseInt(match.tabA), tb = parseInt(match.tabB);
+      if (ta > tb) return tA;
+      if (tb > ta) return tB;
+    }
+    return null;
   };
 
   const finalisteA = getWinner(finaleMatches[0], team1, team4);
@@ -220,10 +264,16 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
     match && match.scoreA !== "" && match.scoreB !== ""
       ? `${match.scoreA} - ${match.scoreB}` : "— : —";
 
+  const hasTab = (match) =>
+    match && match.scoreA !== "" && match.scoreB !== "" &&
+    parseInt(match.scoreA) === parseInt(match.scoreB) &&
+    match.tabA !== "" && match.tabB !== "" && match.tabA !== undefined;
+
   // Carte match en inline styles purs
   const MatchCard = ({ label, teamA, teamB, match, headerBg = "#1e3a8a", headerColor = "#fff", borderColor = "#bfdbfe", scoreBg = "#eff6ff", scoreColor = "#1e3a8a", isFinale = false }) => {
     const score = fmScore(match);
     const winner = match ? getWinner(match, teamA, teamB) : null;
+    const showTab = hasTab(match);
     return (
       <div
         onClick={() => onNavigate("finale")}
@@ -240,8 +290,16 @@ const HomeFinaleBracket = ({ finaleMatches, dfTeams, onNavigate }) => {
               {teamA || <span style={{ color: "#d1d5db", fontStyle: "italic", fontSize: 10 }}>—</span>}
             </div>
           </div>
-          <div style={{ background: scoreBg, color: scoreColor, border: `1px solid ${borderColor}`, borderRadius: 6, padding: "3px 6px", fontWeight: 800, fontSize: 12, minWidth: 44, textAlign: "center", flexShrink: 0 }}>
-            {score}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>
+            <div style={{ background: scoreBg, color: scoreColor, border: `1px solid ${borderColor}`, borderRadius: 6, padding: "3px 6px", fontWeight: 800, fontSize: 12, minWidth: 44, textAlign: "center" }}>
+              {score}
+            </div>
+            {showTab && (
+              <div style={{ display: "flex", alignItems: "center", gap: 3, background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 5, padding: "2px 6px" }}>
+                <span style={{ fontSize: 8, color: "#c2410c", fontWeight: 700 }}>🎯 TAB</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#c2410c" }}>{match.tabA} - {match.tabB}</span>
+              </div>
+            )}
           </div>
           <div style={{ flex: 1, textAlign: "center" }}>
             <div style={{ fontWeight: 700, fontSize: 11, color: winner === teamB ? "#16a34a" : "#1e3a8a", wordBreak: "break-word" }}>
@@ -432,9 +490,9 @@ function App() {
   })));
 
   const generateFinaleMatches = () => ([
-    { label:"Demi-finale 1", date:"", scoreA:"", scoreB:"", jaunesA:[], jaunesB:[], rougesA:[], rougesB:[], buteurs:[], passes:[], arbitre:"", terrain:"" },
-    { label:"Demi-finale 2", date:"", scoreA:"", scoreB:"", jaunesA:[], jaunesB:[], rougesA:[], rougesB:[], buteurs:[], passes:[], arbitre:"", terrain:"" },
-    { label:"Finale",        date:"", scoreA:"", scoreB:"", jaunesA:[], jaunesB:[], rougesA:[], rougesB:[], buteurs:[], passes:[], arbitre:"", terrain:"" },
+    { label:"Demi-finale 1", date:"", scoreA:"", scoreB:"", tabA:"", tabB:"", jaunesA:[], jaunesB:[], rougesA:[], rougesB:[], buteurs:[], passes:[], arbitre:"", terrain:"" },
+    { label:"Demi-finale 2", date:"", scoreA:"", scoreB:"", tabA:"", tabB:"", jaunesA:[], jaunesB:[], rougesA:[], rougesB:[], buteurs:[], passes:[], arbitre:"", terrain:"" },
+    { label:"Finale",        date:"", scoreA:"", scoreB:"", tabA:"", tabB:"", jaunesA:[], jaunesB:[], rougesA:[], rougesB:[], buteurs:[], passes:[], arbitre:"", terrain:"" },
   ]);
 
   const [matches, setMatches] = useState(generateMatches());
@@ -529,7 +587,14 @@ function App() {
   const getWinner = (match,tA,tB) => {
     if(!match||match.scoreA===""||match.scoreB==="") return null;
     const a=parseInt(match.scoreA),b=parseInt(match.scoreB);
-    return a>b?tA:b>a?tB:null;
+    if(a>b) return tA;
+    if(b>a) return tB;
+    if(match.tabA!==""&&match.tabB!==""&&match.tabA!==undefined){
+      const ta=parseInt(match.tabA),tb=parseInt(match.tabB);
+      if(ta>tb) return tA;
+      if(tb>ta) return tB;
+    }
+    return null;
   };
   const finalisteA = getWinner(finaleMatches[0],team1,team4)||"Vainqueur DF1";
   const finalisteB = getWinner(finaleMatches[1],team2,team3)||"Vainqueur DF2";
