@@ -601,10 +601,12 @@ function App() {
 
   const goalStats={};
   matches.forEach(m=>m.buteurs.forEach(n=>{if(n) goalStats[n]=(goalStats[n]||0)+1;}));
+  finaleMatches.forEach(m=>m.buteurs.forEach(n=>{if(n) goalStats[n]=(goalStats[n]||0)+1;}));
   const topScorers=Object.entries(goalStats).map(([name,goals])=>({name,goals})).sort((a,b)=>b.goals-a.goals);
 
   const assistStats={};
   matches.forEach(m=>m.passes.forEach(n=>{if(n) assistStats[n]=(assistStats[n]||0)+1;}));
+  finaleMatches.forEach(m=>m.passes.forEach(n=>{if(n) assistStats[n]=(assistStats[n]||0)+1;}));
   const topAssists=Object.entries(assistStats).map(([name,assists])=>({name,assists})).sort((a,b)=>b.assists-a.assists);
 
   // ---- Loading ----
